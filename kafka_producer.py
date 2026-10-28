@@ -1,0 +1,38 @@
+
+import time
+import json
+import random
+from kafka import KafkaProducer
+
+# Generar datos simulados de sensores
+def generate_sensor_data():
+    return {
+        "sensor_id": random.randint(1, 10),
+        "temperature": round(random.uniform(20, 30), 2),
+        "humidity": round(random.uniform(30, 70), 2),
+        "timestamp": int(time.time())
+    }
+
+# Conectar con Apache Kafka
+producer = KafkaProducer(
+    bootstrap_servers=["localhost:9092"],
+    value_serializer=lambda x: json.dumps(x).encode("utf-8")
+)
+
+# Enviar datos cada segundo
+try:
+    while True:
+        sensor_data = generate_sensor_data()
+
+        producer.send("sensor_data", value=sensor_data)
+
+        print(f"Sent: {sensor_data}", flush=True)
+
+        time.sleep(1)
+
+except KeyboardInterrupt:
+    print("Productor detenido")
+
+finally:
+    producer.flush()
+    producer.close()
